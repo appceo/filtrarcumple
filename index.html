@@ -41,9 +41,6 @@
         .header-bg {
             background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 60%, #1e40af 100%);
         }
-        .gold-badge {
-            background: linear-gradient(135deg, #fbbf24 0%, #d97706 100%);
-        }
         .custom-scrollbar::-webkit-scrollbar {
             width: 6px;
             height: 6px;
@@ -64,14 +61,14 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
             <div class="flex items-center space-x-3">
                 <div class="p-2.5 bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 shadow-inner flex items-center justify-center">
-                    <i data-lucide="cross" class="w-6 h-6 text-amber-400"></i>
+                    <i data-lucide="calendar-heart" class="w-6 h-6 text-amber-400"></i>
                 </div>
                 <div>
                     <div class="flex items-center space-x-2">
                         <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight text-white">IGLECO</h1>
                         <span class="text-[10px] uppercase font-bold tracking-widest px-2 py-0.5 rounded bg-amber-400/20 text-amber-300 border border-amber-400/30">Membresía</span>
                     </div>
-                    <p class="text-xs text-slate-300 hidden sm:block">Ministerio de Gestión de Miembros y Aniversarios</p>
+                    <p class="text-xs text-slate-300 hidden sm:block">Ministerio de Gestión de Miembros y Cumpleaños</p>
                 </div>
             </div>
             
@@ -90,7 +87,7 @@
 
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 flex-grow w-full">
 
-        <!-- Top Controls Section -->
+        <!-- Controls Section -->
         <section class="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <!-- File Upload Box -->
             <div class="lg:col-span-2 bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-slate-200 dark:border-slate-700/80 flex flex-col justify-between">
@@ -100,7 +97,7 @@
                             <i data-lucide="file-up" class="w-5 h-5 mr-2 text-igleco-600 dark:text-amber-400"></i>
                             1. Cargar Registro de Miembros (.CSV)
                         </h2>
-                        <span class="text-xs text-slate-400 font-medium">Formato seguro cliente</span>
+                        <span class="text-xs text-slate-400 font-medium">Soporta Tildes, Ñs y Grupos</span>
                     </div>
                     <p class="text-xs text-slate-500 dark:text-slate-400 mb-4">
                         Sube la base de datos de miembros de IGLECO en formato separado por comas o punto y coma.
@@ -118,7 +115,7 @@
                                     Haz clic para explorar o arrastra tu archivo CSV
                                 </p>
                                 <p class="text-xs text-slate-400 dark:text-slate-500 mt-1">
-                                    Soporta nombres, apellidos, teléfono móvil y fecha de nacimiento
+                                    Soporta nombres, apellidos, teléfono móvil, fecha de nacimiento y grupo
                                 </p>
                             </div>
                             <span id="fileNameDisplay" class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-blue-100 dark:bg-blue-900/60 text-igleco-600 dark:text-amber-300 hidden border border-blue-200 dark:border-blue-800">
@@ -129,7 +126,6 @@
                     </div>
                 </div>
 
-                <!-- Footer button for demo data -->
                 <div class="mt-4 pt-4 border-t border-slate-100 dark:border-slate-700/60 flex justify-between items-center text-xs">
                     <span class="text-slate-500 dark:text-slate-400">¿Deseas probar la aplicación con datos ficticios?</span>
                     <button onclick="loadDemoData()" class="text-igleco-600 dark:text-amber-400 font-bold hover:underline flex items-center space-x-1">
@@ -188,7 +184,7 @@
             </div>
         </section>
 
-        <!-- Dynamic Field Mapping Panel -->
+        <!-- Mapping Panel -->
         <section id="mappingSection" class="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-slate-200 dark:border-slate-700/80 hidden">
             <div class="flex justify-between items-center mb-3">
                 <div>
@@ -202,10 +198,11 @@
                 </div>
             </div>
             <div id="mappingGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-xs">
-                <!-- Dynamically filled with JS -->
+                <!-- Filled via JS -->
             </div>
         </section>
 
+        <!-- Summary Cards -->
         <section class="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div class="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-200 dark:border-slate-700/80 shadow-sm flex items-center space-x-4">
                 <div class="p-3 bg-slate-100 text-slate-700 dark:bg-slate-700 dark:text-slate-200 rounded-2xl">
@@ -229,7 +226,7 @@
 
             <div class="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-200 dark:border-slate-700/80 shadow-sm flex items-center space-x-4">
                 <div class="p-3 bg-blue-100 text-igleco-600 dark:bg-blue-900/40 dark:text-blue-300 rounded-2xl">
-                    <i data-lucide="award" class="w-6 h-6"></i>
+                    <i data-lucide="sparkles" class="w-6 h-6"></i>
                 </div>
                 <div class="overflow-hidden">
                     <p class="text-xs text-slate-500 dark:text-slate-400 font-semibold uppercase tracking-wider">Primer Cumpleaños</p>
@@ -240,6 +237,7 @@
             </div>
         </section>
 
+        <!-- Preview Table -->
         <section class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700/80 overflow-hidden">
             <div class="p-5 border-b border-slate-200 dark:border-slate-700/80 flex flex-col sm:flex-row justify-between sm:items-center gap-4 bg-slate-50/50 dark:bg-slate-800/50">
                 <div>
@@ -248,18 +246,16 @@
                         Vista Previa de Cumpleañeros (Orden Cronológico)
                     </h3>
                     <p class="text-xs text-slate-500 dark:text-slate-400">
-                        Listado filtrado por el día de nacimiento de menor a mayor.
+                        Listado ordenado por día de nacimiento. Incluye grupo y datos completos.
                     </p>
                 </div>
 
                 <div class="flex flex-wrap items-center gap-2">
-                    <!-- Search Input -->
                     <div class="relative min-w-[200px]">
-                        <input type="text" id="searchInput" oninput="filterAndRenderData()" placeholder="Buscar miembro o móvil..." class="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white text-xs rounded-xl focus:ring-igleco-500 focus:border-igleco-500 p-2.5 pl-8 shadow-sm">
+                        <input type="text" id="searchInput" oninput="filterAndRenderData()" placeholder="Buscar por nombre, móvil o grupo..." class="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white text-xs rounded-xl focus:ring-igleco-500 focus:border-igleco-500 p-2.5 pl-8 shadow-sm">
                         <i data-lucide="search" class="w-3.5 h-3.5 absolute left-2.5 top-3 text-slate-400"></i>
                     </div>
 
-                    <!-- Copy Phone Numbers Button -->
                     <button id="copyPhonesBtn" onclick="copyPhoneNumbers()" disabled title="Copiar lista de móviles al portapapeles" class="px-3 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 disabled:opacity-50 font-semibold text-xs rounded-xl transition flex items-center space-x-1.5 shadow-sm border border-slate-300 dark:border-slate-600">
                         <i data-lucide="copy" class="w-3.5 h-3.5"></i>
                         <span class="hidden md:inline">Copiar Móviles</span>
@@ -267,20 +263,20 @@
                 </div>
             </div>
 
-            <!-- Table Container -->
             <div class="overflow-x-auto custom-scrollbar">
                 <table class="w-full text-left text-xs sm:text-sm">
                     <thead class="bg-slate-100/70 dark:bg-slate-900/80 text-slate-600 dark:text-slate-300 font-bold border-b border-slate-200 dark:border-slate-700 uppercase tracking-wider text-[11px]">
                         <tr>
                             <th class="p-4">Día / Celebración</th>
-                            <th class="p-4">Nombre Completo del Miembro</th>
+                            <th class="p-4">Nombre Completo</th>
+                            <th class="p-4">Grupo / Ministerio</th>
                             <th class="p-4">Teléfono Móvil</th>
-                            <th class="p-4">Fecha Completa</th>
+                            <th class="p-4">Fecha Nacimiento</th>
                         </tr>
                     </thead>
                     <tbody id="tableBody" class="divide-y divide-slate-100 dark:divide-slate-700/50">
                         <tr>
-                            <td colspan="4" class="p-10 text-center text-slate-400 dark:text-slate-500">
+                            <td colspan="5" class="p-10 text-center text-slate-400 dark:text-slate-500">
                                 <div class="flex flex-col items-center justify-center space-y-3">
                                     <i data-lucide="inbox" class="w-10 h-10 stroke-1 text-slate-300 dark:text-slate-600"></i>
                                     <span class="text-sm font-medium">No hay datos cargados. Por favor sube un archivo CSV con la membresía.</span>
@@ -294,7 +290,6 @@
 
     </main>
 
-    <!-- Footer -->
     <footer class="bg-slate-900 text-slate-400 text-xs py-6 border-t border-slate-800">
         <div class="max-w-7xl mx-auto px-4 text-center flex flex-col sm:flex-row justify-between items-center gap-2">
             <p>© IGLECO - Iglesia Cristiana. Sistema de Gestión de Membresía.</p>
@@ -302,14 +297,13 @@
         </div>
     </footer>
 
-    <!-- Notification Toast -->
+    <!-- Toast notification -->
     <div id="toast" class="fixed bottom-5 right-5 bg-slate-900 text-white text-xs font-semibold px-4 py-3 rounded-xl shadow-2xl border border-slate-700 flex items-center space-x-2 opacity-0 pointer-events-none transition duration-300 z-50">
         <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400"></i>
-        <span id="toastMsg">Mensaje de notificación</span>
+        <span id="toastMsg">Notificación</span>
     </div>
 
     <script>
-        // Data State
         let rawData = [];
         let parsedRecords = [];
         let filteredRecords = [];
@@ -319,17 +313,18 @@
             lastName: '',
             secondLastName: '',
             phone: '',
-            dob: ''
+            dob: '',
+            group: ''
         };
 
-        // Smart Aliases for Header Mapping
         const fieldAliases = {
             firstName: ['primer nombre', 'primer_nombre', 'nombre 1', 'nombre1', 'p_nombre', 'firstname', 'first_name', 'nombre', 'nombres'],
             secondName: ['segundo nombre', 'segundo_nombre', 'nombre 2', 'nombre2', 's_nombre', 'middlename', 'second_name'],
             lastName: ['primer apellido', 'primer_apellido', 'apellido 1', 'apellido1', 'p_apellido', 'lastname', 'last_name', 'apellido', 'apellidos'],
             secondLastName: ['segundo apellido', 'segundo_apellido', 'apellido 2', 'apellido2', 's_apellido', 'second_lastname'],
             phone: ['móvil', 'movil', 'celular', 'teléfono', 'telefono', 'teléfono móvil', 'telefono movil', 'phone', 'mobile', 'contacto', 'whatsapp'],
-            dob: ['fecha de nacimiento', 'fecha_nacimiento', 'cumpleaños', 'cumpleanios', 'nacimiento', 'fecha_nac', 'dob', 'birthdate', 'f_nacimiento', 'f_nac']
+            dob: ['fecha de nacimiento', 'fecha_nacimiento', 'cumpleaños', 'cumpleanios', 'nacimiento', 'fecha_nac', 'dob', 'birthdate', 'f_nacimiento', 'f_nac'],
+            group: ['grupo', 'grupo_familiar', 'grupo familiar', 'célula', 'celula', 'ministerio', 'red', 'equipo', 'comunidad']
         };
 
         const monthNames = [
@@ -337,15 +332,12 @@
             "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
         ];
 
-        // Initialization
         window.addEventListener('DOMContentLoaded', () => {
             lucide.createIcons();
             
-            // Set current month as default in drop-down
             const currentMonth = new Date().getMonth() + 1;
             document.getElementById('monthSelect').value = currentMonth;
             
-            // Setup Drag & Drop Handlers
             const dropZone = document.getElementById('dropZone');
             ['dragenter', 'dragover'].forEach(eventName => {
                 dropZone.addEventListener(eventName, (e) => {
@@ -370,11 +362,28 @@
             if (file) processFile(file);
         }
 
+        // Automatic Encoding Fix (UTF-8 vs ISO-8859-1 / Windows-1252 for tildes and eñes)
         function processFile(file) {
             document.getElementById('fileNameText').innerText = file.name;
             document.getElementById('fileNameDisplay').classList.remove('hidden');
 
-            Papa.parse(file, {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const buffer = e.target.result;
+                let text = new TextDecoder('utf-8').decode(buffer);
+
+                // If corrupt characters exist, decode using ISO-8859-1 (Latin1)
+                if (text.includes('')) {
+                    text = new TextDecoder('iso-8859-1').decode(buffer);
+                }
+
+                parseCSVText(text);
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        function parseCSVText(csvText) {
+            Papa.parse(csvText, {
                 header: true,
                 skipEmptyLines: true,
                 dynamicTyping: false,
@@ -383,9 +392,9 @@
                         rawData = results.data;
                         detectColumns(results.meta.fields);
                         processData();
-                        showToast("Archivo cargado exitosamente");
+                        showToast("Archivo cargado con caracteres especiales corregidos");
                     } else {
-                        alert("El archivo CSV no contiene registros o el formato es incorrecto.");
+                        alert("El archivo CSV no contiene registros válidos.");
                     }
                 },
                 error: function(err) {
@@ -419,7 +428,8 @@
                 lastName: 'Primer Apellido',
                 secondLastName: 'Segundo Apellido',
                 phone: 'Teléfono Móvil',
-                dob: 'Fecha de Nacimiento'
+                dob: 'Fecha de Nacimiento',
+                group: 'Grupo / Ministerio'
             };
 
             Object.keys(columnMapping).forEach(field => {
@@ -459,22 +469,18 @@
             document.getElementById('mappingSection').classList.remove('hidden');
         }
 
-        // Robust Date Parser
         function parseDate(dateStr) {
             if (!dateStr) return null;
             const str = String(dateStr).trim();
 
             let day, month, year;
 
-            // ISO YYYY-MM-DD
             if (/^\d{4}[-/.]\d{1,2}[-/.]\d{1,2}$/.test(str)) {
                 const parts = str.split(/[-/.]/);
                 year = parseInt(parts[0], 10);
                 month = parseInt(parts[1], 10);
                 day = parseInt(parts[2], 10);
-            } 
-            // Standard DD/MM/YYYY
-            else if (/^\d{1,2}[-/.]\d{1,2}[-/.]\d{2,4}$/.test(str)) {
+            } else if (/^\d{1,2}[-/.]\d{1,2}[-/.]\d{2,4}$/.test(str)) {
                 const parts = str.split(/[-/.]/);
                 day = parseInt(parts[0], 10);
                 month = parseInt(parts[1], 10);
@@ -504,6 +510,7 @@
                 const ln = row[columnMapping.lastName] || '';
                 const sln = row[columnMapping.secondLastName] || '';
                 const phone = row[columnMapping.phone] || 'Sin Teléfono';
+                const group = row[columnMapping.group] || 'Sin Grupo';
                 const dobRaw = row[columnMapping.dob] || '';
 
                 const parsedDob = parseDate(dobRaw);
@@ -516,6 +523,7 @@
                     secondLastName: sln,
                     fullName,
                     phone,
+                    group,
                     dobRaw,
                     parsedDob
                 };
@@ -528,21 +536,19 @@
             const selectedMonth = parseInt(document.getElementById('monthSelect').value, 10);
             const searchQuery = (document.getElementById('searchInput').value || '').toLowerCase();
 
-            // Filter members matching selected birthday month
             filteredRecords = parsedRecords.filter(item => item.parsedDob.month === selectedMonth);
 
-            // Text search
             if (searchQuery) {
                 filteredRecords = filteredRecords.filter(item => 
                     item.fullName.toLowerCase().includes(searchQuery) ||
-                    String(item.phone).toLowerCase().includes(searchQuery)
+                    String(item.phone).toLowerCase().includes(searchQuery) ||
+                    item.group.toLowerCase().includes(searchQuery)
                 );
             }
 
-            // CHRONOLOGICAL SORTING: Day 1 to Day 31
+            // Chronological sorting: Day 1 -> 31
             filteredRecords.sort((a, b) => a.parsedDob.day - b.parsedDob.day);
 
-            // Update Header Stats
             document.getElementById('statTotal').innerText = rawData.length;
             document.getElementById('statFiltered').innerText = filteredRecords.length;
             
@@ -553,7 +559,6 @@
                 document.getElementById('statNext').innerText = "Ninguno";
             }
 
-            // Enable/Disable Controls
             const exportBtn = document.getElementById('exportBtn');
             const copyPhonesBtn = document.getElementById('copyPhonesBtn');
             const exportStatus = document.getElementById('exportStatus');
@@ -580,7 +585,7 @@
             if (filteredRecords.length === 0) {
                 tbody.innerHTML = `
                     <tr>
-                        <td colspan="4" class="p-10 text-center text-slate-400 dark:text-slate-500">
+                        <td colspan="5" class="p-10 text-center text-slate-400 dark:text-slate-500">
                             <div class="flex flex-col items-center justify-center space-y-2">
                                 <i data-lucide="calendar-x" class="w-8 h-8 stroke-1 text-amber-500"></i>
                                 <span>No se encontraron cumpleañeros para este mes o búsqueda.</span>
@@ -609,6 +614,11 @@
                     </td>
                     <td class="p-4 font-semibold text-slate-800 dark:text-slate-100">${item.fullName}</td>
                     <td class="p-4 text-slate-600 dark:text-slate-300">
+                        <span class="px-2 py-1 rounded-md bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 font-medium">
+                            ${item.group}
+                        </span>
+                    </td>
+                    <td class="p-4 text-slate-600 dark:text-slate-300">
                         <span class="inline-flex items-center font-mono">
                             <i data-lucide="phone" class="w-3.5 h-3.5 mr-1.5 text-slate-400"></i>
                             ${item.phone}
@@ -622,14 +632,13 @@
             lucide.createIcons();
         }
 
-        // Excel Export via SheetJS
+        // Export to Excel .xlsx with Group column and preserved accents
         function exportToExcel() {
             if (filteredRecords.length === 0) return;
 
             const selectedMonthIndex = parseInt(document.getElementById('monthSelect').value, 10) - 1;
             const selectedMonthName = monthNames[selectedMonthIndex];
 
-            // Build Output Rows
             const excelData = filteredRecords.map((item, index) => ({
                 "N°": index + 1,
                 "Día Cumpleaños": item.parsedDob.day,
@@ -639,14 +648,13 @@
                 "Segundo Nombre": item.secondName,
                 "Primer Apellido": item.lastName,
                 "Segundo Apellido": item.secondLastName,
+                "Grupo / Ministerio": item.group,
                 "Teléfono Móvil": item.phone,
                 "Fecha Nacimiento": `${String(item.parsedDob.day).padStart(2, '0')}/${String(item.parsedDob.month).padStart(2, '0')}/${item.parsedDob.year}`
             }));
 
-            // Create Sheet
             const worksheet = XLSX.utils.json_to_sheet(excelData);
 
-            // Column Width Adjustments
             worksheet['!cols'] = [
                 { wch: 5 },  // N°
                 { wch: 15 }, // Día
@@ -656,6 +664,7 @@
                 { wch: 16 }, // Segundo Nombre
                 { wch: 16 }, // Primer Apellido
                 { wch: 16 }, // Segundo Apellido
+                { wch: 22 }, // Grupo
                 { wch: 18 }, // Teléfono
                 { wch: 18 }  // Fecha Nacimiento
             ];
@@ -669,7 +678,6 @@
             showToast(`Excel descargado: ${fileName}`);
         }
 
-        // Copy Phone List
         function copyPhoneNumbers() {
             if (filteredRecords.length === 0) return;
 
@@ -683,7 +691,6 @@
                 return;
             }
 
-            // Clipboard copy with fallback
             const tempInput = document.createElement("textarea");
             tempInput.value = phones;
             document.body.appendChild(tempInput);
@@ -694,15 +701,14 @@
             showToast("Móviles copiados al portapapeles");
         }
 
-        // Sample CSV Generation & Download
         function downloadSampleCSV() {
-            const csvContent = `primer_nombre,segundo_nombre,primer_apellido,segundo_apellido,celular,fecha_nacimiento
-David,Esteban,Gómez,Ríos,3001234567,14/05/1988
-Andrea,Carolina,Mendoza,Pérez,3119876543,02/05/1994
-Santiago,,López,Vargas,3204567890,28/05/1982
-Valentina,Sofía,Castillo,Morales,3156543210,10/10/1998
-Camilo,Andrés,Torres,Silva,3187654321,05/05/2001
-Mariana,,Bermúdez,Rojas,3012349876,21/10/1991`;
+            const csvContent = `primer_nombre,segundo_nombre,primer_apellido,segundo_apellido,celular,fecha_nacimiento,grupo
+David,Esteban,Gómez,Ríos,3001234567,14/05/1988,Jóvenes IGLECO
+Andrea,Carolina,Mendoza,Pérez,3119876543,02/05/1994,Grupo de Parejas
+Santiago,,López,Vargas,3204567890,28/05/1982,Ministerio de Alabanza
+Valentina,Sofía,Castillo,Morales,3156543210,10/10/1998,Grupo Jóvenes
+Camilo,Andrés,Torres,Silva,3187654321,05/05/2001,Célula Norte
+Mariana,,Bermúdez,Rojas,3012349876,21/10/1991,Red de Mujeres`;
 
             const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
             const url = URL.createObjectURL(blob);
@@ -716,29 +722,20 @@ Mariana,,Bermúdez,Rojas,3012349876,21/10/1991`;
             showToast("Plantilla CSV descargada");
         }
 
-        // Demo Data Loader
         function loadDemoData() {
-            const demoCSV = `primer_nombre,segundo_nombre,primer_apellido,segundo_apellido,celular,fecha_nacimiento
-Carlos,Eduardo,Ramírez,Gutiérrez,3001112233,12/05/1985
-Laura,Ximena,Sánchez,Reyes,3124445566,04/05/1990
-Felipe,Ignacio,Hernández,Vargas,3207778899,25/05/1980
-Diana,Marcela,García,Pérez,3150001122,18/10/1993
-Mateo,Alejandro,Martínez,Suárez,3183334455,01/05/1999
-Sofía,Isabel,Díaz,Mendoza,3016667788,29/10/1987
-Daniel,Esteban,Ortiz,Castro,3149990011,15/05/1976
-Paula,Andrea,Morales,Ríos,3162223344,08/05/2002`;
+            const demoCSV = `primer_nombre,segundo_nombre,primer_apellido,segundo_apellido,celular,fecha_nacimiento,grupo
+Carlos,Eduardo,Ramírez,Gutiérrez,3001112233,12/05/1985,Líderes de Red
+Laura,Ximena,Sánchez,Reyes,3124445566,04/05/1990,Célula Centro
+Felipe,Ignacio,Hernández,Vargas,3207778899,25/05/1980,Alabanza
+Diana,Marcela,García,Pérez,3150001122,18/10/1993,Ministerio Infantil
+Mateo,Alejandro,Martínez,Suárez,3183334455,01/05/1999,Jóvenes IGLECO
+Sofía,Isabel,Díaz,Mendoza,3016667788,29/10/1987,Red de Mujeres
+Daniel,Esteban,Ortiz,Castro,3149990011,15/05/1976,Grupo de Hombres
+Paula,Andrea,Morales,Ríos,3162223344,08/05/2002,Célula Sur`;
 
-            Papa.parse(demoCSV, {
-                header: true,
-                complete: function(results) {
-                    rawData = results.data;
-                    document.getElementById('fileNameText').innerText = "demo_IGLECO.csv";
-                    document.getElementById('fileNameDisplay').classList.remove('hidden');
-                    detectColumns(results.meta.fields);
-                    processData();
-                    showToast("Datos de prueba de IGLECO cargados");
-                }
-            });
+            parseCSVText(demoCSV);
+            document.getElementById('fileNameText').innerText = "demo_IGLECO.csv";
+            document.getElementById('fileNameDisplay').classList.remove('hidden');
         }
 
         function showToast(message) {
