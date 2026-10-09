@@ -7,7 +7,7 @@
   
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- SheetJS (xlsx) para parsing universal y exportación de Excel -->
+  <!-- SheetJS (xlsx) -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
@@ -37,7 +37,7 @@
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
 
-  <!-- ENCABEZADO DE LA APLICACIÓN -->
+  <!-- ENCABEZADO -->
   <header class="bg-slate-900 text-white border-b border-amber-500/30 sticky top-0 z-50 shadow-md">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
       <div class="flex items-center space-x-3">
@@ -59,7 +59,7 @@
   <!-- CONTENIDO PRINCIPAL -->
   <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-grow w-full">
     
-    <!-- TARJETA PRINCIPAL DE CARGA Y SELECCIÓN -->
+    <!-- TARJETA DE CARGA -->
     <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-8">
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-end">
         
@@ -69,7 +69,7 @@
             <i data-lucide="file-up" class="w-4 h-4 text-amber-600"></i>
             1. Cargar Base de Datos Membresía (.csv)
           </label>
-          <input type="file" id="csvFile" accept=".csv, .txt, .tsv, .xlsx" 
+          <input type="file" id="csvFile" accept=".csv, .txt, .xlsx" 
             class="block w-full text-sm text-slate-500
               file:mr-4 file:py-2.5 file:px-4
               file:rounded-lg file:border-0
@@ -105,7 +105,7 @@
 
       </div>
 
-      <!-- ESTADO Y ACCIONES -->
+      <!-- ESTADO Y BOTONES -->
       <div class="mt-6 pt-4 border-t border-slate-100 flex flex-wrap items-center justify-between gap-4">
         <div id="statusMessage" class="text-xs text-slate-500 flex items-center gap-1.5">
           <i data-lucide="info" class="w-4 h-4 text-slate-400"></i>
@@ -167,7 +167,6 @@
     </div>
   </footer>
 
-  <!-- SCRIPT CON MOTOR ROBUSTO SHEETJS -->
   <script>
     lucide.createIcons();
 
@@ -188,70 +187,86 @@
       "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
     ];
 
-    // Evento de subida de archivo
     csvFileInput.addEventListener('change', function(e) {
       const file = e.target.files[0];
       if (!file) return;
 
-      statusMessage.innerHTML = `<span class="text-amber-600 font-medium">Leyendo archivo base de datos...</span>`;
-
-      // Habilitar de inmediato el selector
+      statusMessage.innerHTML = `<span class="text-amber-600 font-medium">Procesando archivo...</span>`;
       mesSelect.disabled = false;
 
       const reader = new FileReader();
+      
+      // Leer primero como ArrayBuffer para decodificar texto con la codificación exacta
       reader.readAsArrayBuffer(file);
 
       reader.onload = function(evt) {
         try {
-          const data = new Uint8Array(evt.target.result);
-          // SheetJS lee nativamente CSV, TSV, XLSX en cualquier codificación y delimitador
-          const workbook = XLSX.read(data, { type: 'array', codepage: 65001 }); // UTF-8 con fallback automático
-          
+          const buffer = evt.target.result;
+          let decoder = new TextDecoder('utf-8');
+          let text = decoder.decode(buffer);
+
+          // Si detecta el carácter de reemplazo , decodificar como ISO-8859-1 (Windows-1252 / ANSI)
+          if (text.includes('')) {
+            decoder = new TextDecoder('iso-8859-1');
+            text = decoder.decode(buffer);
+          }
+
+          // Convertir el texto decodificado a libro de SheetJS
+          const workbook = XLSX.read(text, { type: 'string' });
           const firstSheetName = workbook.SheetNames[0];
           const worksheet = workbook.Sheets[firstSheetName];
-          
-          // Convertir la hoja a matriz de filas (JSON)
-          const rows = XLSX.utils.sheet_to_json(worksheet, { header: 1, raw: false, defval: '' });
 
+          const rows = XLSX.utils.sheet_to_json(worksheet, { header: 1, raw: false, defval: '' });
           procesarFilas(rows);
+
         } catch (err) {
           console.error(err);
-          statusMessage.innerHTML = `<span class="text-rose-600 font-medium">Error al leer la estructura del archivo. Intente guardarlo de nuevo como CSV o Excel.</span>`;
+          statusMessage.innerHTML = `<span class="text-rose-600 font-medium">Error al procesar el archivo. Verifique el formato.</span>`;
         }
       };
     });
 
-    // Función que procesa la matriz de filas obtenida
     function procesarFilas(rows) {
       if (!rows || rows.length < 2) {
-        statusMessage.innerHTML = `<span class="text-rose-600 font-medium">El archivo subido no contiene registros suficientes.</span>`;
+        statusMessage.innerHTML = `<span class="text-rose-600 font-medium">El archivo no contiene registros suficientes.</span>`;
         return;
       }
 
-      // 1. Detectar la fila de cabeceras real (por si hay títulos arriba)
+      // 1. Identificar la fila de encabezados
       let headerRowIndex = 0;
       for (let i = 0; i < Math.min(10, rows.length); i++) {
         const rowStr = rows[i].join(' ').toLowerCase();
-        if (rowStr.includes('nombre') || rowStr.includes('apellido') || rowStr.includes('nacimiento') || rowStr.includes('fecha')) {
+        if (rowStr.includes('nombre') || rowStr.includes('apellido') || rowStr.includes('nacimiento')) {
           headerRowIndex = i;
           break;
         }
       }
 
-      const headers = rows[headerRowIndex].map(h => String(h).toLowerCase().trim().replace(/[^a-z0-9áéíóúñ_\s]/gi, ''));
+      const headers = rows[headerRowIndex].map(h => String(h).toLowerCase().trim());
 
-      // Helper para buscar índices de columnas
-      const findIndex = (keywords) => headers.findIndex(h => keywords.some(k => h.includes(k)));
+      // Helper estricto con prioridades para evitar seleccionar columnas erróneas
+      const findExactIndex = (patterns) => {
+        // Primera pasada: Coincidencia exacta
+        for (let pattern of patterns) {
+          let idx = headers.findIndex(h => h === pattern);
+          if (idx !== -1) return idx;
+        }
+        // Segunda pasada: Contiene el patrón
+        for (let pattern of patterns) {
+          let idx = headers.findIndex(h => h.includes(pattern));
+          if (idx !== -1) return idx;
+        }
+        return -1;
+      };
 
-      const idxPNombre = findIndex(['primer nombre', 'primer_nombre', 'p_nombre', 'nombre1', 'nombre']);
-      const idxSNombre = findIndex(['segundo nombre', 'segundo_nombre', 's_nombre', 'nombre2']);
-      const idxPApellido = findIndex(['primer apellido', 'primer_apellido', 'p_apellido', 'apellido1', 'apellido']);
-      const idxSApellido = findIndex(['segundo apellido', 'segundo_apellido', 's_apellido', 'apellido2']);
-      
-      // Búsquedas requeridas
-      const idxCelular = findIndex(['celular', 'móvil', 'movil', 'telefono', 'teléfono']);
-      const idxGrupo = findIndex(['grupo al que pertenece', 'grupo', 'ministerio', 'célula', 'celula']);
-      let idxFecha = findIndex(['fecha nacimiento', 'nacimiento', 'fecha_nac', 'cumpleaños', 'cumpleanos', 'fecha']);
+      // Mapeo preciso de columnas
+      const idxPNombre = findExactIndex(['primer nombre', 'primer_nombre', 'p_nombre', 'primer nombre ']);
+      const idxSNombre = findExactIndex(['segundo nombre', 'segundo_nombre', 's_nombre']);
+      const idxPApellido = findExactIndex(['primer apellido', 'primer_apellido', 'p_apellido']);
+      const idxSApellido = findExactIndex(['segundo apellido', 'segundo_apellido', 's_apellido']);
+      const idxCelular = findExactIndex(['celular', 'móvil', 'movil', 'telefono', 'teléfono']);
+      const idxGrupo = findExactIndex(['grupo al que pertenece', 'grupo', 'ministerio', 'célula', 'celula']);
+      const idxFecha = findExactIndex(['fecha nacimiento', 'fecha_nac', 'nacimiento', 'cumpleaños', 'cumpleanos', 'fecha']);
 
       personasProcesadas = [];
 
@@ -266,11 +281,10 @@
         const celular = idxCelular !== -1 ? String(row[idxCelular] || 'Sin información').trim() : 'Sin información';
         const grupo = idxGrupo !== -1 ? String(row[idxGrupo] || 'Sin Grupo').trim() : 'Sin Grupo';
 
-        let fechaStr = '';
-        if (idxFecha !== -1) {
-          fechaStr = String(row[idxFecha] || '').trim();
-        } else {
-          // Escaneo si no hay cabecera explícita
+        let fechaStr = idxFecha !== -1 ? String(row[idxFecha] || '').trim() : '';
+
+        // Fallback si no encontró la columna de fecha por nombre
+        if (!fechaStr) {
           for (let col of row) {
             const str = String(col).trim();
             if (str.match(/\d{1,4}[\/\-\.]\d{1,2}[\/\-\.]\d{1,4}/)) {
@@ -299,9 +313,9 @@
       }
 
       if (personasProcesadas.length > 0) {
-        statusMessage.innerHTML = `<span class="text-emerald-600 font-medium flex items-center gap-1"><i data-lucide="check-circle" class="w-4 h-4"></i> Base cargada exitosamente: ${personasProcesadas.length} personas identificadas. Seleccione un mes.</span>`;
+        statusMessage.innerHTML = `<span class="text-emerald-600 font-medium flex items-center gap-1"><i data-lucide="check-circle" class="w-4 h-4"></i> Base cargada exitosamente (${personasProcesadas.length} personas). Seleccione un mes.</span>`;
       } else {
-        statusMessage.innerHTML = `<span class="text-amber-600 font-medium flex items-center gap-1"><i data-lucide="alert-triangle" class="w-4 h-4"></i> Archivo leído. Si no aparecen resultados, seleccione el mes en la casilla desplegable.</span>`;
+        statusMessage.innerHTML = `<span class="text-amber-600 font-medium flex items-center gap-1"><i data-lucide="alert-triangle" class="w-4 h-4"></i> Base procesada. Seleccione un mes en el menú desplegable.</span>`;
       }
 
       if (mesSelect.value) {
@@ -310,11 +324,9 @@
       lucide.createIcons();
     }
 
-    // Extractor universal de día, mes y año
     function extraerDiaMesAno(str) {
       if (!str) return null;
-      
-      let limpia = str.trim().split(' ')[0]; // Quitar horas si existen
+      let limpia = str.trim().split(' ')[0];
       let partes = limpia.split(/[\/\-\.]/);
 
       if (partes.length < 3) return null;
@@ -340,7 +352,6 @@
       return { dia, mes, ano };
     }
 
-    // Filtrado por mes
     mesSelect.addEventListener('change', function() {
       const val = parseInt(this.value, 10);
       if (!val) {
@@ -353,10 +364,7 @@
 
     function filtrarMes(mesNum) {
       personasFiltradas = personasProcesadas.filter(p => p.mes === mesNum);
-      
-      // Ordenar por día del mes (cronológico)
       personasFiltradas.sort((a, b) => a.dia - b.dia);
-
       renderizarTabla(mesNum);
     }
 
@@ -399,7 +407,7 @@
       resultadosContenedor.classList.remove('hidden');
     }
 
-    // Exportación a Excel (.xlsx)
+    // Exportar a Excel guardando nativamente codificación UTF-8
     exportBtn.addEventListener('click', function() {
       if (personasFiltradas.length === 0) return;
 
