@@ -7,7 +7,7 @@
   
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- SheetJS (xlsx) para generar archivos Excel descargables -->
+  <!-- SheetJS (xlsx) -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
@@ -30,7 +30,6 @@
       }
     }
   </script>
-  
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
     body { font-family: 'Inter', sans-serif; }
@@ -38,7 +37,7 @@
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
 
-  <!-- ENCABEZADO / HEADER -->
+  <!-- ENCABEZADO -->
   <header class="bg-slate-900 text-white border-b border-amber-500/30 sticky top-0 z-50 shadow-md">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
       <div class="flex items-center space-x-3">
@@ -52,7 +51,7 @@
       </div>
       <div class="text-xs bg-slate-800 border border-slate-700 px-3 py-1.5 rounded-full text-slate-300 flex items-center gap-2">
         <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-        Servicio Activo
+        Sistema Listo
       </div>
     </div>
   </header>
@@ -60,11 +59,10 @@
   <!-- CONTENIDO PRINCIPAL -->
   <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-grow w-full">
     
-    <!-- TARJETA DE CARGA -->
     <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-8">
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-end">
         
-        <!-- Campo Adjuntar CSV -->
+        <!-- Campo CSV -->
         <div>
           <label class="block text-sm font-semibold text-slate-700 mb-2 flex items-center gap-2">
             <i data-lucide="file-up" class="w-4 h-4 text-amber-600"></i>
@@ -106,14 +104,14 @@
 
       </div>
 
-      <!-- BOTONES Y ACCIONES -->
+      <!-- ESTADO Y ACCIONES -->
       <div class="mt-6 pt-4 border-t border-slate-100 flex flex-wrap items-center justify-between gap-4">
         <div id="statusMessage" class="text-xs text-slate-500 flex items-center gap-1.5">
           <i data-lucide="info" class="w-4 h-4 text-slate-400"></i>
           Sube el archivo de registros para habilitar la consulta.
         </div>
         
-        <div class="flex items-center gap-3">
+        <div>
           <button id="exportBtn" disabled 
             class="bg-emerald-600 hover:bg-emerald-700 text-white font-medium px-5 py-2.5 rounded-lg text-sm transition flex items-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed shadow-sm">
             <i data-lucide="download" class="w-4 h-4"></i>
@@ -123,10 +121,9 @@
       </div>
     </div>
 
-    <!-- VISTA PREVIA Y RESULTADOS -->
+    <!-- RESULTADOS -->
     <div id="resultadosContenedor" class="hidden">
       
-      <!-- Contador e Info -->
       <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2">
         <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2">
           <i data-lucide="users" class="w-5 h-5 text-amber-600"></i>
@@ -154,7 +151,6 @@
               </tr>
             </thead>
             <tbody id="tablaCuerpo" class="divide-y divide-slate-100">
-              <!-- Filas dinámicas -->
             </tbody>
           </table>
         </div>
@@ -164,16 +160,13 @@
 
   </main>
 
-  <!-- PIE DE PÁGINA / FOOTER -->
   <footer class="bg-white border-t border-slate-200 py-4 mt-auto">
     <div class="max-w-7xl mx-auto px-4 text-center text-xs text-slate-500">
       &copy; IGLECO - Todos los derechos reservados.
     </div>
   </footer>
 
-  <!-- SCRIPT LÓGICA PRINCIPAL -->
   <script>
-    // Inicializar iconos Lucide
     lucide.createIcons();
 
     let personasProcesadas = [];
@@ -193,33 +186,31 @@
       "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
     ];
 
-    // Escuchar carga de archivo CSV
     csvFileInput.addEventListener('change', function(e) {
       const file = e.target.files[0];
       if (!file) return;
 
       const reader = new FileReader();
-      
-      // Leer como ArrayBuffer para corregir codificación (tildes / eñes)
       reader.readAsArrayBuffer(file);
 
       reader.onload = function(evt) {
-        const buffer = evt.target.result;
-        
-        // Decodificación inteligente: prueba UTF-8 y si detecta caracteres extraños usa ISO-8859-1 (Windows-1252/ANSI)
-        let decoder = new TextDecoder('utf-8');
-        let text = decoder.decode(buffer);
+        try {
+          const buffer = evt.target.result;
+          let decoder = new TextDecoder('utf-8');
+          let text = decoder.decode(buffer);
 
-        if (text.includes('')) {
-          decoder = new TextDecoder('iso-8859-1');
-          text = decoder.decode(buffer);
+          if (text.includes('')) {
+            decoder = new TextDecoder('iso-8859-1');
+            text = decoder.decode(buffer);
+          }
+
+          procesarCSV(text);
+        } catch (err) {
+          statusMessage.innerHTML = `<span class="text-rose-600 font-medium">Error al leer el archivo: ${err.message}</span>`;
         }
-
-        procesarCSV(text);
       };
     });
 
-    // Función para dividir lineas de CSV respetando comillas
     function splitCSVLine(line, delimiter) {
       const result = [];
       let cur = '';
@@ -240,27 +231,74 @@
       return result;
     }
 
-    // Procesar el texto plano del CSV
     function procesarCSV(contenido) {
       const lineas = contenido.split(/\r\n|\n/).filter(l => l.trim().length > 0);
       if (lineas.length < 2) {
-        alert("El archivo CSV no contiene suficientes registros o no tiene un formato válido.");
+        statusMessage.innerHTML = `<span class="text-rose-600 font-medium">El archivo no contiene suficientes registros.</span>`;
         return;
       }
 
-      // Detectar delimitador (, o ;)
       const primeraLinea = lineas[0];
       const delimitador = (primeraLinea.split(';').length > primeraLinea.split(',').length) ? ';' : ',';
 
-      const cabeceras = splitCSVLine(lineas[0], delimitador).map(h => h.toLowerCase().trim());
+      const cabecerasRaw = splitCSVLine(lineas[0], delimitador);
+      const cabeceras = cabecerasRaw.map(h => h.toLowerCase().trim());
 
-      // Mapear posiciones de las columnas requeridas
-      const idxPrimerNombre = cabeceras.findIndex(h => h.includes('primer nombre') || h === 'nombre' || h === 'primer_nombre');
-      const idxSegundoNombre = cabeceras.findIndex(h => h.includes('segundo nombre') || h === 'segundo_nombre');
-      const idxPrimerApellido = cabeceras.findIndex(h => h.includes('primer apellido') || h === 'apellido' || h === 'primer_apellido');
-      const idxSegundoApellido = cabeceras.findIndex(h => h.includes('segundo apellido') || h === 'segundo_apellido');
+      // Búsqueda flexible de columnas
+      const findIdx = (keywords) => cabeceras.findIndex(h => keywords.some(k => h.includes(k)));
+
+      const idxPrimerNombre = findIdx(['primer nombre', 'primer_nombre', 'nombre']);
+      const idxSegundoNombre = findIdx(['segundo nombre', 'segundo_nombre']);
+      const idxPrimerApellido = findIdx(['primer apellido', 'primer_apellido', 'apellido']);
+      const idxSegundoApellido = findIdx(['segundo apellido', 'segundo_apellido']);
       
-      // Ajuste especificado: Buscar "celular" prioritariamente
-      const idxCelular = cabeceras.findIndex(h => h.includes('celular') || h.includes('móvil') || h.includes('movil') || h.includes('teléfono') || h.includes('telefono'));
+      // Prioridad exacta 'celular'
+      const idxCelular = findIdx(['celular', 'móvil', 'movil', 'telefono', 'teléfono']);
       
-      const idxFechaNac = cabeceras.findIndex(
+      // Prioridad 'grupo al que pertenece'
+      const idxGrupo = findIdx(['grupo al que pertenece', 'grupo', 'ministerio', 'célula', 'celula']);
+
+      // Búsqueda robusta de fecha de nacimiento
+      let idxFechaNac = findIdx(['fecha nacimiento', 'fecha_nac', 'nacimiento', 'cumpleaños', 'cumpleanos']);
+      
+      // Fallback: Si no encuentra por nombre, busca la primera columna que contenga "fecha"
+      if (idxFechaNac === -1) {
+        idxFechaNac = findIdx(['fecha']);
+      }
+
+      personasProcesadas = [];
+
+      for (let i = 1; i < lineas.length; i++) {
+        const cols = splitCSVLine(lineas[i], delimitador);
+        if (cols.length <= 1) continue;
+
+        const pNombre = idxPrimerNombre !== -1 ? cols[idxPrimerNombre] || '' : '';
+        const sNombre = idxSegundoNombre !== -1 ? cols[idxSegundoNombre] || '' : '';
+        const pApellido = idxPrimerApellido !== -1 ? cols[idxPrimerApellido] || '' : '';
+        const sApellido = idxSegundoApellido !== -1 ? cols[idxSegundoApellido] || '' : '';
+        const celular = idxCelular !== -1 ? cols[idxCelular] || '' : 'Sin información';
+        const fechaNacStr = idxFechaNac !== -1 ? cols[idxFechaNac] || '' : '';
+        const grupo = idxGrupo !== -1 ? cols[idxGrupo] || 'Sin Grupo' : 'Sin Grupo';
+
+        const parseFecha = extraerDiaMesAno(fechaNacStr);
+
+        if (parseFecha) {
+          personasProcesadas.push({
+            primerNombre: pNombre,
+            segundoNombre: sNombre,
+            primerApellido: pApellido,
+            segundoApellido: sApellido,
+            celular: celular,
+            fechaNacimiento: fechaNacStr,
+            dia: parseFecha.dia,
+            mes: parseFecha.mes,
+            ano: parseFecha.ano,
+            grupo: grupo
+          });
+        }
+      }
+
+      if (personasProcesadas.length > 0) {
+        mesSelect.disabled = false;
+        mesSelect.value = "";
+        statusMessage.innerHTML = `<span class="text-emerald-600 font-medium flex items-center gap-1"><i data-lucide="check-circle" class="w-4
