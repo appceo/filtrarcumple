@@ -299,4 +299,131 @@
       }
 
       if (personasProcesadas.length > 0) {
-        statusMessage.innerHTML = `<span class="text-emerald-600 font
+        statusMessage.innerHTML = `<span class="text-emerald-600 font-medium flex items-center gap-1"><i data-lucide="check-circle" class="w-4 h-4"></i> Base cargada exitosamente: ${personasProcesadas.length} personas identificadas. Seleccione un mes.</span>`;
+      } else {
+        statusMessage.innerHTML = `<span class="text-amber-600 font-medium flex items-center gap-1"><i data-lucide="alert-triangle" class="w-4 h-4"></i> Archivo leído. Si no aparecen resultados, seleccione el mes en la casilla desplegable.</span>`;
+      }
+
+      if (mesSelect.value) {
+        filtrarMes(parseInt(mesSelect.value, 10));
+      }
+      lucide.createIcons();
+    }
+
+    // Extractor universal de día, mes y año
+    function extraerDiaMesAno(str) {
+      if (!str) return null;
+      
+      let limpia = str.trim().split(' ')[0]; // Quitar horas si existen
+      let partes = limpia.split(/[\/\-\.]/);
+
+      if (partes.length < 3) return null;
+
+      let dia, mes, ano;
+
+      // Formato YYYY-MM-DD
+      if (partes[0].length === 4) {
+        ano = parseInt(partes[0], 10);
+        mes = parseInt(partes[1], 10);
+        dia = parseInt(partes[2], 10);
+      } else {
+        // Formato DD-MM-YYYY
+        dia = parseInt(partes[0], 10);
+        mes = parseInt(partes[1], 10);
+        ano = parseInt(partes[2], 10);
+      }
+
+      if (isNaN(dia) || isNaN(mes) || mes < 1 || mes > 12 || dia < 1 || dia > 31) {
+        return null;
+      }
+
+      return { dia, mes, ano };
+    }
+
+    // Filtrado por mes
+    mesSelect.addEventListener('change', function() {
+      const val = parseInt(this.value, 10);
+      if (!val) {
+        resultadosContenedor.classList.add('hidden');
+        exportBtn.disabled = true;
+        return;
+      }
+      filtrarMes(val);
+    });
+
+    function filtrarMes(mesNum) {
+      personasFiltradas = personasProcesadas.filter(p => p.mes === mesNum);
+      
+      // Ordenar por día del mes (cronológico)
+      personasFiltradas.sort((a, b) => a.dia - b.dia);
+
+      renderizarTabla(mesNum);
+    }
+
+    function renderizarTabla(numMes) {
+      tablaCuerpo.innerHTML = '';
+      nombreMesTxt.textContent = nombresMeses[numMes];
+      contadorRegistros.textContent = `${personasFiltradas.length} persona(s) cumplen años`;
+
+      if (personasFiltradas.length === 0) {
+        tablaCuerpo.innerHTML = `
+          <tr>
+            <td colspan="8" class="text-center py-6 text-slate-400 font-medium">
+              No hay cumpleañeros registrados en el mes de ${nombresMeses[numMes]}.
+            </td>
+          </tr>`;
+        exportBtn.disabled = true;
+      } else {
+        personasFiltradas.forEach(p => {
+          const tr = document.createElement('tr');
+          tr.className = 'hover:bg-slate-50 transition border-b border-slate-100';
+          tr.innerHTML = `
+            <td class="px-4 py-3 text-center font-bold text-amber-700 bg-amber-50/50">${p.dia}</td>
+            <td class="px-4 py-3 font-medium text-slate-800">${p.primerNombre}</td>
+            <td class="px-4 py-3">${p.segundoNombre}</td>
+            <td class="px-4 py-3 font-medium text-slate-800">${p.primerApellido}</td>
+            <td class="px-4 py-3">${p.segundoApellido}</td>
+            <td class="px-4 py-3 font-mono text-xs text-slate-600">${p.celular}</td>
+            <td class="px-4 py-3 font-mono text-xs">${p.fechaNacimiento}</td>
+            <td class="px-4 py-3">
+              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-700 border border-slate-200">
+                ${p.grupo}
+              </span>
+            </td>
+          `;
+          tablaCuerpo.appendChild(tr);
+        });
+        exportBtn.disabled = false;
+      }
+
+      resultadosContenedor.classList.remove('hidden');
+    }
+
+    // Exportación a Excel (.xlsx)
+    exportBtn.addEventListener('click', function() {
+      if (personasFiltradas.length === 0) return;
+
+      const mesSelNum = parseInt(mesSelect.value, 10);
+      const nombreMes = nombresMeses[mesSelNum];
+
+      const datosExcel = personasFiltradas.map(p => ({
+        "Día Cumpleaños": p.dia,
+        "Mes": nombreMes,
+        "Primer Nombre": p.primerNombre,
+        "Segundo Nombre": p.segundoNombre,
+        "Primer Apellido": p.primerApellido,
+        "Segundo Apellido": p.segundoApellido,
+        "Celular": p.celular,
+        "Fecha Nacimiento": p.fechaNacimiento,
+        "Grupo al que pertenece": p.grupo
+      }));
+
+      const worksheet = XLSX.utils.json_to_sheet(datosExcel);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, `Cumpleañeros ${nombreMes}`);
+
+      XLSX.writeFile(workbook, `Cumpleanos_IGLECO_${nombreMes}.xlsx`);
+    });
+  </script>
+</body>
+</html>
