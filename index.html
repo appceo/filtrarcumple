@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cumpleaños IGLECO - Iglesia Cristiana</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- PapaParse for CSV parsing -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <!-- SheetJS (XLSX) for Excel Export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                    },
+                    colors: {
+                        igleco: {
+                            50: '#f0f4fa',
+                            100: '#dbe5f3',
+                            500: '#1d4ed8',
+                            600: '#1e3a8a', // Deep Royal Blue
+                            700: '#172554',
+                            gold: '#d97706', // Soft Gold
+                            goldLight: '#fef3c7',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .header-bg {
+            background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 60%, #1e40af 100%);
+        }
+        .gold-badge {
+            background: linear-gradient(135deg, #fbbf24 0%, #d97706 100%);
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(0,0,0,0.05);
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(100,116,139,0.3);
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 min-h-screen flex flex-col font-sans transition-colors duration-200">
+
+    <header class="header-bg text-white shadow-xl sticky top-0 z-50 border-b border-amber-500/20">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <div class="p-2.5 bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 shadow-inner flex items-center justify-center">
+                    <i data-lucide="cross" class="w-6 h-6 text-amber-400"></i>
+                </div>
+                <div>
+                    <div class="flex items-center space-x-2">
+                        <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight text-white">IGLECO</h1>
+                        <span class="text-[10px] uppercase font-bold tracking-widest px-2 py-0.5 rounded bg-amber-400/20 text-amber-300 border border-amber-400/30">Membresía</span>
+                    </div>
+                    <p class="text-xs text-slate-300 hidden sm:block">Ministerio de Gestión de Miembros y Aniversarios</p>
+                </div>
+            </div>
+            
+            <div class="flex items-center space-x-3">
+                <button onclick="downloadSampleCSV()" class="px-3 py-2 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-xs font-semibold text-amber-300 transition flex items-center space-x-1.5 shadow-sm">
+                    <i data-lucide="download" class="w-4 h-4"></i>
+                    <span class="hidden md:inline">Plantilla CSV</span>
+                </button>
+                <button id="themeToggleBtn" onclick="toggleDarkMode()" class="p-2.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 transition flex items-center justify-center" title="Cambiar Tema">
+                    <i data-lucide="sun" id="sunIcon" class="w-4 h-4 hidden text-amber-300"></i>
+                    <i data-lucide="moon" id="moonIcon" class="w-4 h-4 text-white"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 flex-grow w-full">
+
+        <!-- Top Controls Section -->
+        <section class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- File Upload Box -->
+            <div class="lg:col-span-2 bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-slate-200 dark:border-slate-700/80 flex flex-col justify-between">
+                <div>
+                    <div class="flex justify-between items-center mb-2">
+                        <h2 class="text-base font-bold text-slate-900 dark:text-white flex items-center">
+                            <i data-lucide="file-up" class="w-5 h-5 mr-2 text-igleco-600 dark:text-amber-400"></i>
+                            1. Cargar Registro de Miembros (.CSV)
+                        </h2>
+                        <span class="text-xs text-slate-400 font-medium">Formato seguro cliente</span>
+                    </div>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mb-4">
+                        Sube la base de datos de miembros de IGLECO en formato separado por comas o punto y coma.
+                    </p>
+                    
+                    <!-- Dropzone -->
+                    <div id="dropZone" onclick="document.getElementById('csvFileInput').click()" class="border-2 border-dashed border-slate-300 dark:border-slate-600 hover:border-igleco-500 dark:hover:border-amber-400 rounded-2xl p-8 text-center cursor-pointer transition duration-200 bg-slate-50/50 dark:bg-slate-800/50 hover:bg-blue-50/30 dark:hover:bg-slate-700/40 group">
+                        <input type="file" id="csvFileInput" accept=".csv, .txt" class="hidden" onchange="handleFileSelect(event)">
+                        <div class="flex flex-col items-center justify-center space-y-3">
+                            <div class="p-4 bg-blue-50 dark:bg-slate-700 rounded-2xl text-igleco-600 dark:text-amber-400 group-hover:scale-105 transition duration-200 shadow-sm">
+                                <i data-lucide="upload-cloud" class="w-8 h-8"></i>
+                            </div>
+                            <div>
+                                <p class="text-sm font-semibold text-slate-700 dark:text-slate-200">
+                                    Haz clic para explorar o arrastra tu archivo CSV
+                                </p>
+                                <p class="text-xs text-slate-400 dark:text-slate-500 mt-1">
+                                    Soporta nombres, apellidos, teléfono móvil y fecha de nacimiento
+                                </p>
+                            </div>
+                            <span id="fileNameDisplay" class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-blue-100 dark:bg-blue-900/60 text-igleco-600 dark:text-amber-300 hidden border border-blue-200 dark:border-blue-800">
+                                <i data-lucide="file-check" class="w-3.5 h-3.5 mr-1.5"></i>
+                                <span id="fileNameText">archivo.csv</span>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Footer button for demo data -->
+                <div class="mt-4 pt-4 border-t border-slate-100 dark:border-slate-700/60 flex justify-between items-center text-xs">
+                    <span class="text-slate-500 dark:text-slate-400">¿Deseas probar la aplicación con datos ficticios?</span>
+                    <button onclick="loadDemoData()" class="text-igleco-600 dark:text-amber-400 font-bold hover:underline flex items-center space-x-1">
+                        <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
+                        <span>Cargar datos demo IGLECO</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Month Selection & Export -->
+            <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-slate-200 dark:border-slate-700/80 flex flex-col justify-between">
+                <div>
+                    <h2 class="text-base font-bold text-slate-900 dark:text-white mb-2 flex items-center">
+                        <i data-lucide="calendar" class="w-5 h-5 mr-2 text-igleco-600 dark:text-amber-400"></i>
+                        2. Filtrar y Exportar Excel
+                    </h2>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mb-4">
+                        Selecciona el mes para generar la lista cronológica de cumpleañeros.
+                    </p>
+
+                    <div class="space-y-4">
+                        <div>
+                            <label for="monthSelect" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                                Mes de Cumpleaños
+                            </label>
+                            <div class="relative">
+                                <select id="monthSelect" onchange="filterAndRenderData()" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white text-sm rounded-xl focus:ring-igleco-500 focus:border-igleco-500 p-3 pr-10 appearance-none font-medium cursor-pointer shadow-sm">
+                                    <option value="1">Enero</option>
+                                    <option value="2">Febrero</option>
+                                    <option value="3">Marzo</option>
+                                    <option value="4">Abril</option>
+                                    <option value="5">Mayo</option>
+                                    <option value="6">Junio</option>
+                                    <option value="7">Julio</option>
+                                    <option value="8">Agosto</option>
+                                    <option value="9">Septiembre</option>
+                                    <option value="10">Octubre</option>
+                                    <option value="11">Noviembre</option>
+                                    <option value="12">Diciembre</option>
+                                </select>
+                                <i data-lucide="chevron-down" class="w-5 h-5 absolute right-3 top-3.5 text-slate-400 pointer-events-none"></i>
+                            </div>
+                        </div>
+
+                        <!-- Export Button -->
+                        <button id="exportBtn" onclick="exportToExcel()" disabled class="w-full bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-200 dark:disabled:bg-slate-700 text-white disabled:text-slate-400 dark:disabled:text-slate-500 font-bold p-3.5 rounded-xl shadow-md hover:shadow-lg disabled:shadow-none transition flex items-center justify-center space-x-2 text-sm disabled:cursor-not-allowed">
+                            <i data-lucide="file-spreadsheet" class="w-5 h-5"></i>
+                            <span>Generar Informe Excel (.xlsx)</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div id="exportStatus" class="mt-4 text-xs text-center text-slate-500 dark:text-slate-400 font-medium">
+                    Por favor carga un archivo CSV para habilitar la exportación.
+                </div>
+            </div>
+        </section>
+
+        <!-- Dynamic Field Mapping Panel -->
+        <section id="mappingSection" class="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-slate-200 dark:border-slate-700/80 hidden">
+            <div class="flex justify-between items-center mb-3">
+                <div>
+                    <h3 class="text-sm font-bold text-slate-900 dark:text-white flex items-center">
+                        <i data-lucide="sliders" class="w-4 h-4 mr-2 text-igleco-600 dark:text-amber-400"></i>
+                        Verificación y Mapeo de Columnas
+                    </h3>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">
+                        Si algún encabezado de tu CSV no coincide automáticamente, ajusta las opciones correspondientes:
+                    </p>
+                </div>
+            </div>
+            <div id="mappingGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-xs">
+                <!-- Dynamically filled with JS -->
+            </div>
+        </section>
+
+        <section class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div class="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-200 dark:border-slate-700/80 shadow-sm flex items-center space-x-4">
+                <div class="p-3 bg-slate-100 text-slate-700 dark:bg-slate-700 dark:text-slate-200 rounded-2xl">
+                    <i data-lucide="users" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 font-semibold uppercase tracking-wider">Total Miembros</p>
+                    <p id="statTotal" class="text-2xl font-black text-slate-900 dark:text-white">0</p>
+                </div>
+            </div>
+
+            <div class="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-200 dark:border-slate-700/80 shadow-sm flex items-center space-x-4">
+                <div class="p-3 bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300 rounded-2xl">
+                    <i data-lucide="cake" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 font-semibold uppercase tracking-wider">Cumpleañeros Mes</p>
+                    <p id="statFiltered" class="text-2xl font-black text-amber-600 dark:text-amber-400">0</p>
+                </div>
+            </div>
+
+            <div class="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-200 dark:border-slate-700/80 shadow-sm flex items-center space-x-4">
+                <div class="p-3 bg-blue-100 text-igleco-600 dark:bg-blue-900/40 dark:text-blue-300 rounded-2xl">
+                    <i data-lucide="award" class="w-6 h-6"></i>
+                </div>
+                <div class="overflow-hidden">
+                    <p class="text-xs text-slate-500 dark:text-slate-400 font-semibold uppercase tracking-wider">Primer Cumpleaños</p>
+                    <p id="statNext" class="text-sm font-bold text-slate-800 dark:text-slate-200 truncate">
+                        ---
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <section class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700/80 overflow-hidden">
+            <div class="p-5 border-b border-slate-200 dark:border-slate-700/80 flex flex-col sm:flex-row justify-between sm:items-center gap-4 bg-slate-50/50 dark:bg-slate-800/50">
+                <div>
+                    <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center">
+                        <i data-lucide="list" class="w-5 h-5 mr-2 text-igleco-600 dark:text-amber-400"></i>
+                        Vista Previa de Cumpleañeros (Orden Cronológico)
+                    </h3>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">
+                        Listado filtrado por el día de nacimiento de menor a mayor.
+                    </p>
+                </div>
+
+                <div class="flex flex-wrap items-center gap-2">
+                    <!-- Search Input -->
+                    <div class="relative min-w-[200px]">
+                        <input type="text" id="searchInput" oninput="filterAndRenderData()" placeholder="Buscar miembro o móvil..." class="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white text-xs rounded-xl focus:ring-igleco-500 focus:border-igleco-500 p-2.5 pl-8 shadow-sm">
+                        <i data-lucide="search" class="w-3.5 h-3.5 absolute left-2.5 top-3 text-slate-400"></i>
+                    </div>
+
+                    <!-- Copy Phone Numbers Button -->
+                    <button id="copyPhonesBtn" onclick="copyPhoneNumbers()" disabled title="Copiar lista de móviles al portapapeles" class="px-3 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 disabled:opacity-50 font-semibold text-xs rounded-xl transition flex items-center space-x-1.5 shadow-sm border border-slate-300 dark:border-slate-600">
+                        <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+                        <span class="hidden md:inline">Copiar Móviles</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Table Container -->
+            <div class="overflow-x-auto custom-scrollbar">
+                <table class="w-full text-left text-xs sm:text-sm">
+                    <thead class="bg-slate-100/70 dark:bg-slate-900/80 text-slate-600 dark:text-slate-300 font-bold border-b border-slate-200 dark:border-slate-700 uppercase tracking-wider text-[11px]">
+                        <tr>
+                            <th class="p-4">Día / Celebración</th>
+                            <th class="p-4">Nombre Completo del Miembro</th>
+                            <th class="p-4">Teléfono Móvil</th>
+                            <th class="p-4">Fecha Completa</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody" class="divide-y divide-slate-100 dark:divide-slate-700/50">
+                        <tr>
+                            <td colspan="4" class="p-10 text-center text-slate-400 dark:text-slate-500">
+                                <div class="flex flex-col items-center justify-center space-y-3">
+                                    <i data-lucide="inbox" class="w-10 h-10 stroke-1 text-slate-300 dark:text-slate-600"></i>
+                                    <span class="text-sm font-medium">No hay datos cargados. Por favor sube un archivo CSV con la membresía.</span>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-slate-900 text-slate-400 text-xs py-6 border-t border-slate-800">
+        <div class="max-w-7xl mx-auto px-4 text-center flex flex-col sm:flex-row justify-between items-center gap-2">
+            <p>© IGLECO - Iglesia Cristiana. Sistema de Gestión de Membresía.</p>
+            <p class="text-slate-500">Alojado y ejecutado en el navegador (100% privado y seguro)</p>
+        </div>
+    </footer>
+
+    <!-- Notification Toast -->
+    <div id="toast" class="fixed bottom-5 right-5 bg-slate-900 text-white text-xs font-semibold px-4 py-3 rounded-xl shadow-2xl border border-slate-700 flex items-center space-x-2 opacity-0 pointer-events-none transition duration-300 z-50">
+        <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400"></i>
+        <span id="toastMsg">Mensaje de notificación</span>
+    </div>
+
+    <script>
+        // Data State
+        let rawData = [];
+        let parsedRecords = [];
+        let filteredRecords = [];
+        let columnMapping = {
+            firstName: '',
+            secondName: '',
+            lastName: '',
+            secondLastName: '',
+            phone: '',
+            dob: ''
+        };
+
+        // Smart Aliases for Header Mapping
+        const fieldAliases = {
+            firstName: ['primer nombre', 'primer_nombre', 'nombre 1', 'nombre1', 'p_nombre', 'firstname', 'first_name', 'nombre', 'nombres'],
+            secondName: ['segundo nombre', 'segundo_nombre', 'nombre 2', 'nombre2', 's_nombre', 'middlename', 'second_name'],
+            lastName: ['primer apellido', 'primer_apellido', 'apellido 1', 'apellido1', 'p_apellido', 'lastname', 'last_name', 'apellido', 'apellidos'],
+            secondLastName: ['segundo apellido', 'segundo_apellido', 'apellido 2', 'apellido2', 's_apellido', 'second_lastname'],
+            phone: ['móvil', 'movil', 'celular', 'teléfono', 'telefono', 'teléfono móvil', 'telefono movil', 'phone', 'mobile', 'contacto', 'whatsapp'],
+            dob: ['fecha de nacimiento', 'fecha_nacimiento', 'cumpleaños', 'cumpleanios', 'nacimiento', 'fecha_nac', 'dob', 'birthdate', 'f_nacimiento', 'f_nac']
+        };
+
+        const monthNames = [
+            "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", 
+            "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
+        ];
+
+        // Initialization
+        window.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            
+            // Set current month as default in drop-down
+            const currentMonth = new Date().getMonth() + 1;
+            document.getElementById('monthSelect').value = currentMonth;
+            
+            // Setup Drag & Drop Handlers
+            const dropZone = document.getElementById('dropZone');
+            ['dragenter', 'dragover'].forEach(eventName => {
+                dropZone.addEventListener(eventName, (e) => {
+                    e.preventDefault();
+                    dropZone.classList.add('border-igleco-500', 'bg-blue-50/50');
+                }, false);
+            });
+            ['dragleave', 'drop'].forEach(eventName => {
+                dropZone.addEventListener(eventName, (e) => {
+                    e.preventDefault();
+                    dropZone.classList.remove('border-igleco-500', 'bg-blue-50/50');
+                }, false);
+            });
+            dropZone.addEventListener('drop', (e) => {
+                const files = e.dataTransfer.files;
+                if (files.length) processFile(files[0]);
+            });
+        });
+
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (file) processFile(file);
+        }
+
+        function processFile(file) {
+            document.getElementById('fileNameText').innerText = file.name;
+            document.getElementById('fileNameDisplay').classList.remove('hidden');
+
+            Papa.parse(file, {
+                header: true,
+                skipEmptyLines: true,
+                dynamicTyping: false,
+                complete: function(results) {
+                    if (results.data && results.data.length > 0) {
+                        rawData = results.data;
+                        detectColumns(results.meta.fields);
+                        processData();
+                        showToast("Archivo cargado exitosamente");
+                    } else {
+                        alert("El archivo CSV no contiene registros o el formato es incorrecto.");
+                    }
+                },
+                error: function(err) {
+                    alert("Error al procesar el CSV: " + err.message);
+                }
+            });
+        }
+
+        function detectColumns(headers) {
+            Object.keys(columnMapping).forEach(key => columnMapping[key] = '');
+
+            headers.forEach(header => {
+                const cleanHeader = header.trim().toLowerCase();
+                for (const [field, aliases] of Object.entries(fieldAliases)) {
+                    if (!columnMapping[field] && aliases.some(alias => cleanHeader === alias || cleanHeader.includes(alias))) {
+                        columnMapping[field] = header;
+                    }
+                }
+            });
+
+            renderMappingUI(headers);
+        }
+
+        function renderMappingUI(headers) {
+            const container = document.getElementById('mappingGrid');
+            container.innerHTML = '';
+
+            const fieldLabels = {
+                firstName: 'Primer Nombre',
+                secondName: 'Segundo Nombre',
+                lastName: 'Primer Apellido',
+                secondLastName: 'Segundo Apellido',
+                phone: 'Teléfono Móvil',
+                dob: 'Fecha de Nacimiento'
+            };
+
+            Object.keys(columnMapping).forEach(field => {
+                const div = document.createElement('div');
+                div.className = 'flex flex-col space-y-1';
+                
+                const label = document.createElement('label');
+                label.className = 'font-semibold text-slate-700 dark:text-slate-300';
+                label.innerText = fieldLabels[field];
+
+                const select = document.createElement('select');
+                select.className = 'bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-xl p-2 text-xs text-slate-800 dark:text-slate-200 focus:ring-igleco-500';
+                
+                const defaultOpt = document.createElement('option');
+                defaultOpt.value = '';
+                defaultOpt.innerText = '-- No Asignado --';
+                select.appendChild(defaultOpt);
+
+                headers.forEach(h => {
+                    const opt = document.createElement('option');
+                    opt.value = h;
+                    opt.innerText = h;
+                    if (columnMapping[field] === h) opt.selected = true;
+                    select.appendChild(opt);
+                });
+
+                select.onchange = (e) => {
+                    columnMapping[field] = e.target.value;
+                    processData();
+                };
+
+                div.appendChild(label);
+                div.appendChild(select);
+                container.appendChild(div);
+            });
+
+            document.getElementById('mappingSection').classList.remove('hidden');
+        }
+
+        // Robust Date Parser
+        function parseDate(dateStr) {
+            if (!dateStr) return null;
+            const str = String(dateStr).trim();
+
+            let day, month, year;
+
+            // ISO YYYY-MM-DD
+            if (/^\d{4}[-/.]\d{1,2}[-/.]\d{1,2}$/.test(str)) {
+                const parts = str.split(/[-/.]/);
+                year = parseInt(parts[0], 10);
+                month = parseInt(parts[1], 10);
+                day = parseInt(parts[2], 10);
+            } 
+            // Standard DD/MM/YYYY
+            else if (/^\d{1,2}[-/.]\d{1,2}[-/.]\d{2,4}$/.test(str)) {
+                const parts = str.split(/[-/.]/);
+                day = parseInt(parts[0], 10);
+                month = parseInt(parts[1], 10);
+                year = parseInt(parts[2], 10);
+                if (year < 100) year += 1900;
+            } else {
+                const jsDate = new Date(str);
+                if (!isNaN(jsDate.getTime())) {
+                    day = jsDate.getDate();
+                    month = jsDate.getMonth() + 1;
+                    year = jsDate.getFullYear();
+                } else {
+                    return null;
+                }
+            }
+
+            if (month >= 1 && month <= 12 && day >= 1 && day <= 31) {
+                return { day, month, year, originalStr: str };
+            }
+            return null;
+        }
+
+        function processData() {
+            parsedRecords = rawData.map(row => {
+                const fn = row[columnMapping.firstName] || '';
+                const sn = row[columnMapping.secondName] || '';
+                const ln = row[columnMapping.lastName] || '';
+                const sln = row[columnMapping.secondLastName] || '';
+                const phone = row[columnMapping.phone] || 'Sin Teléfono';
+                const dobRaw = row[columnMapping.dob] || '';
+
+                const parsedDob = parseDate(dobRaw);
+                const fullName = [fn, sn, ln, sln].filter(Boolean).join(' ').trim() || 'Miembro IGLECO';
+
+                return {
+                    firstName: fn,
+                    secondName: sn,
+                    lastName: ln,
+                    secondLastName: sln,
+                    fullName,
+                    phone,
+                    dobRaw,
+                    parsedDob
+                };
+            }).filter(item => item.parsedDob !== null);
+
+            filterAndRenderData();
+        }
+
+        function filterAndRenderData() {
+            const selectedMonth = parseInt(document.getElementById('monthSelect').value, 10);
+            const searchQuery = (document.getElementById('searchInput').value || '').toLowerCase();
+
+            // Filter members matching selected birthday month
+            filteredRecords = parsedRecords.filter(item => item.parsedDob.month === selectedMonth);
+
+            // Text search
+            if (searchQuery) {
+                filteredRecords = filteredRecords.filter(item => 
+                    item.fullName.toLowerCase().includes(searchQuery) ||
+                    String(item.phone).toLowerCase().includes(searchQuery)
+                );
+            }
+
+            // CHRONOLOGICAL SORTING: Day 1 to Day 31
+            filteredRecords.sort((a, b) => a.parsedDob.day - b.parsedDob.day);
+
+            // Update Header Stats
+            document.getElementById('statTotal').innerText = rawData.length;
+            document.getElementById('statFiltered').innerText = filteredRecords.length;
+            
+            if (filteredRecords.length > 0) {
+                const nextPerson = filteredRecords[0];
+                document.getElementById('statNext').innerText = `${nextPerson.fullName.split(' ')[0]} (Día ${nextPerson.parsedDob.day})`;
+            } else {
+                document.getElementById('statNext').innerText = "Ninguno";
+            }
+
+            // Enable/Disable Controls
+            const exportBtn = document.getElementById('exportBtn');
+            const copyPhonesBtn = document.getElementById('copyPhonesBtn');
+            const exportStatus = document.getElementById('exportStatus');
+
+            if (filteredRecords.length > 0) {
+                exportBtn.disabled = false;
+                copyPhonesBtn.disabled = false;
+                exportStatus.innerText = `Reporte listo con ${filteredRecords.length} cumpleañeros de ${monthNames[selectedMonth - 1]}.`;
+            } else {
+                exportBtn.disabled = true;
+                copyPhonesBtn.disabled = true;
+                exportStatus.innerText = parsedRecords.length > 0 
+                    ? `No se registraron cumpleaños en ${monthNames[selectedMonth - 1]}.`
+                    : "Por favor carga un archivo CSV para habilitar la exportación.";
+            }
+
+            renderTable();
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
+
+            if (filteredRecords.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="4" class="p-10 text-center text-slate-400 dark:text-slate-500">
+                            <div class="flex flex-col items-center justify-center space-y-2">
+                                <i data-lucide="calendar-x" class="w-8 h-8 stroke-1 text-amber-500"></i>
+                                <span>No se encontraron cumpleañeros para este mes o búsqueda.</span>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+                lucide.createIcons();
+                return;
+            }
+
+            const monthName = monthNames[parseInt(document.getElementById('monthSelect').value) - 1];
+
+            filteredRecords.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-slate-50/80 dark:hover:bg-slate-700/30 transition-colors border-b border-slate-100 dark:border-slate-700/50';
+
+                const formattedDob = `${String(item.parsedDob.day).padStart(2, '0')}/${String(item.parsedDob.month).padStart(2, '0')}/${item.parsedDob.year}`;
+
+                tr.innerHTML = `
+                    <td class="p-4 font-bold text-igleco-600 dark:text-amber-400">
+                        <span class="inline-flex items-center px-2.5 py-1 rounded-lg bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 text-amber-800 dark:text-amber-300 font-bold">
+                            <i data-lucide="cake" class="w-3.5 h-3.5 mr-1.5 text-amber-500"></i>
+                            Día ${item.parsedDob.day} de ${monthName}
+                        </span>
+                    </td>
+                    <td class="p-4 font-semibold text-slate-800 dark:text-slate-100">${item.fullName}</td>
+                    <td class="p-4 text-slate-600 dark:text-slate-300">
+                        <span class="inline-flex items-center font-mono">
+                            <i data-lucide="phone" class="w-3.5 h-3.5 mr-1.5 text-slate-400"></i>
+                            ${item.phone}
+                        </span>
+                    </td>
+                    <td class="p-4 text-slate-500 dark:text-slate-400 font-mono">${formattedDob}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            lucide.createIcons();
+        }
+
+        // Excel Export via SheetJS
+        function exportToExcel() {
+            if (filteredRecords.length === 0) return;
+
+            const selectedMonthIndex = parseInt(document.getElementById('monthSelect').value, 10) - 1;
+            const selectedMonthName = monthNames[selectedMonthIndex];
+
+            // Build Output Rows
+            const excelData = filteredRecords.map((item, index) => ({
+                "N°": index + 1,
+                "Día Cumpleaños": item.parsedDob.day,
+                "Mes": selectedMonthName,
+                "Nombre Completo": item.fullName,
+                "Primer Nombre": item.firstName,
+                "Segundo Nombre": item.secondName,
+                "Primer Apellido": item.lastName,
+                "Segundo Apellido": item.secondLastName,
+                "Teléfono Móvil": item.phone,
+                "Fecha Nacimiento": `${String(item.parsedDob.day).padStart(2, '0')}/${String(item.parsedDob.month).padStart(2, '0')}/${item.parsedDob.year}`
+            }));
+
+            // Create Sheet
+            const worksheet = XLSX.utils.json_to_sheet(excelData);
+
+            // Column Width Adjustments
+            worksheet['!cols'] = [
+                { wch: 5 },  // N°
+                { wch: 15 }, // Día
+                { wch: 12 }, // Mes
+                { wch: 32 }, // Nombre Completo
+                { wch: 16 }, // Primer Nombre
+                { wch: 16 }, // Segundo Nombre
+                { wch: 16 }, // Primer Apellido
+                { wch: 16 }, // Segundo Apellido
+                { wch: 18 }, // Teléfono
+                { wch: 18 }  // Fecha Nacimiento
+            ];
+
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, `Cumpleañeros ${selectedMonthName}`);
+
+            const fileName = `Cumpleanos_IGLECO_${selectedMonthName}.xlsx`;
+            XLSX.writeFile(workbook, fileName);
+
+            showToast(`Excel descargado: ${fileName}`);
+        }
+
+        // Copy Phone List
+        function copyPhoneNumbers() {
+            if (filteredRecords.length === 0) return;
+
+            const phones = filteredRecords
+                .map(item => item.phone)
+                .filter(p => p && p !== 'Sin Teléfono')
+                .join(', ');
+
+            if (!phones) {
+                alert("No hay teléfonos disponibles para copiar.");
+                return;
+            }
+
+            // Clipboard copy with fallback
+            const tempInput = document.createElement("textarea");
+            tempInput.value = phones;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            document.execCommand("copy");
+            document.body.removeChild(tempInput);
+
+            showToast("Móviles copiados al portapapeles");
+        }
+
+        // Sample CSV Generation & Download
+        function downloadSampleCSV() {
+            const csvContent = `primer_nombre,segundo_nombre,primer_apellido,segundo_apellido,celular,fecha_nacimiento
+David,Esteban,Gómez,Ríos,3001234567,14/05/1988
+Andrea,Carolina,Mendoza,Pérez,3119876543,02/05/1994
+Santiago,,López,Vargas,3204567890,28/05/1982
+Valentina,Sofía,Castillo,Morales,3156543210,10/10/1998
+Camilo,Andrés,Torres,Silva,3187654321,05/05/2001
+Mariana,,Bermúdez,Rojas,3012349876,21/10/1991`;
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.setAttribute("href", url);
+            link.setAttribute("download", "Plantilla_Membresia_IGLECO.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            showToast("Plantilla CSV descargada");
+        }
+
+        // Demo Data Loader
+        function loadDemoData() {
+            const demoCSV = `primer_nombre,segundo_nombre,primer_apellido,segundo_apellido,celular,fecha_nacimiento
+Carlos,Eduardo,Ramírez,Gutiérrez,3001112233,12/05/1985
+Laura,Ximena,Sánchez,Reyes,3124445566,04/05/1990
+Felipe,Ignacio,Hernández,Vargas,3207778899,25/05/1980
+Diana,Marcela,García,Pérez,3150001122,18/10/1993
+Mateo,Alejandro,Martínez,Suárez,3183334455,01/05/1999
+Sofía,Isabel,Díaz,Mendoza,3016667788,29/10/1987
+Daniel,Esteban,Ortiz,Castro,3149990011,15/05/1976
+Paula,Andrea,Morales,Ríos,3162223344,08/05/2002`;
+
+            Papa.parse(demoCSV, {
+                header: true,
+                complete: function(results) {
+                    rawData = results.data;
+                    document.getElementById('fileNameText').innerText = "demo_IGLECO.csv";
+                    document.getElementById('fileNameDisplay').classList.remove('hidden');
+                    detectColumns(results.meta.fields);
+                    processData();
+                    showToast("Datos de prueba de IGLECO cargados");
+                }
+            });
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toastMsg');
+            toastMsg.innerText = message;
+            toast.classList.remove('opacity-0', 'pointer-events-none');
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'pointer-events-none');
+            }, 3000);
+        }
+
+        function toggleDarkMode() {
+            document.documentElement.classList.toggle('dark');
+            const sunIcon = document.getElementById('sunIcon');
+            const moonIcon = document.getElementById('moonIcon');
+            
+            if (document.documentElement.classList.contains('dark')) {
+                sunIcon.classList.remove('hidden');
+                moonIcon.classList.add('hidden');
+            } else {
+                sunIcon.classList.add('hidden');
+                moonIcon.classList.remove('hidden');
+            }
+        }
+    </script>
+</body>
+</html>
